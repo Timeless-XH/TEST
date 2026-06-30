@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>爱的五种语言 · 爱情勇气积分 · 综合平台</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 tailwind.config = {
   theme: {
@@ -327,7 +327,12 @@ const LL_STORAGE_KEY = 'love_languages_quiz_result';
 // Supabase
 const SUPABASE_URL = 'https://xhizdmaxcrysvbktollh.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_dGHwBuEbbbEUOI44k9oUhA_cMvnAwd1';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let supabaseClient = null;
+try {
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} catch(e) {
+  console.warn('Supabase init failed:', e);
+}
 let llCurrentQ = 0;
 let llAnswers = new Array(10).fill(null);
 
@@ -641,6 +646,7 @@ async function cgSaveToLeaderboard() {
     showUsernameModal();
     return;
   }
+  if (!supabaseClient) { console.warn('Supabase not available'); return; }
   try {
     await supabaseClient.from('scores').insert({ username, score: cgScore });
   } catch(e) {
@@ -661,6 +667,7 @@ function cgReset() {
 // ============================================================
 async function refreshLeaderboard() {
   const username = getUsername();
+  if (!supabaseClient) { console.warn('Supabase not available for leaderboard'); return; }
 
   // Fetch from Supabase
   const { data: lb } = await supabaseClient
