@@ -678,14 +678,14 @@ async function refreshLeaderboard() {
   const allEntries = lb || [];
   document.getElementById('lbCount').textContent = `共 ${allEntries.length} 次记录`;
 
-  // Best score per user
-  const bestPerUser = {};
+  // Latest score per user (use first encountered = most recent)
+  const latestPerUser = {};
   allEntries.forEach(e => {
-    if (!bestPerUser[e.username] || e.score > bestPerUser[e.username].score)
-      bestPerUser[e.username] = e;
+    if (!latestPerUser[e.username])
+      latestPerUser[e.username] = e;
   });
 
-  const sorted = Object.values(bestPerUser).sort((a,b) => b.score - a.score);
+  const sorted = Object.values(latestPerUser).sort((a,b) => b.score - a.score);
   document.getElementById('lbCount').textContent = `共 ${sorted.length} 人`;
 
   const list = document.getElementById('lbList');
