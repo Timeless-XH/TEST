@@ -327,7 +327,7 @@ const LL_STORAGE_KEY = 'love_languages_quiz_result';
 // Supabase
 const SUPABASE_URL = 'https://xhizdmaxcrysvbktollh.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_dGHwBuEbbbEUOI44k9oUhA_cMvnAwd1';
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let llCurrentQ = 0;
 let llAnswers = new Array(10).fill(null);
 
@@ -642,7 +642,7 @@ async function cgSaveToLeaderboard() {
     return;
   }
   try {
-    await supabase.from('scores').insert({ username, score: cgScore });
+    await supabaseClient.from('scores').insert({ username, score: cgScore });
   } catch(e) {
     console.error('Save failed:', e);
   }
@@ -663,7 +663,7 @@ async function refreshLeaderboard() {
   const username = getUsername();
 
   // Fetch from Supabase
-  const { data: lb } = await supabase
+  const { data: lb } = await supabaseClient
     .from('scores')
     .select('*')
     .order('created_at', { ascending: false });
