@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>爱的五种语言 · 爱情勇气积分 · 综合平台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        love: { 50:'#fff5f6', 100:'#ffe0e4', 200:'#ffc2c9', 300:'#ff939e', 400:'#ff5e70', 500:'#e94d5f', 600:'#c93a4b', 700:'#a62d3d', 800:'#8a2735', 900:'#722533' },
+        gold: { 50:'#fef9ef', 100:'#fdf0d5', 200:'#faddaa', 300:'#f5c675', 400:'#efa83e', 500:'#e79217', 600:'#cc760d', 700:'#a55c0e', 800:'#854914', 900:'#6e3c12' },
+      },
+    }
+  }
+}
+</script>
+<style>
+  /* Shared */
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI','Microsoft YaHei',sans-serif; background:linear-gradient(135deg,#fdf2f4 0%,#fef9ef 30%,#fdf8f6 60%,#fdf2f4 100%); background-attachment:fixed; min-height:100vh; }
+  .fade-in { animation:fadeIn 0.4s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  .slide-up { animation:slideUp 0.6s cubic-bezier(0.23,1,0.32,1); }
+  @keyframes slideUp { from{opacity:0;transform:translateY(40px)} to{opacity:1;transform:translateY(0)} }
+  .confetti { position:fixed; pointer-events:none; animation:confettiFall 2s ease-out forwards; z-index:9999; }
+  @keyframes confettiFall { 0%{opacity:1;transform:translateY(-100px) rotate(0deg)} 100%{opacity:0;transform:translateY(100vh) rotate(720deg)} }
+  .heart-beat { animation:heartBeat 1.2s ease-in-out infinite; }
+  @keyframes heartBeat { 0%,100%{transform:scale(1)} 14%{transform:scale(1.12)} 28%{transform:scale(1)} 42%{transform:scale(1.12)} 56%{transform:scale(1)} }
+  .content-tab { display:none; }
+  .content-tab.active { display:block; }
+
+  /* Nav tabs */
+  .nav-tab { padding:12px 20px; cursor:pointer; font-weight:600; border-radius:12px 12px 0 0; transition:all 0.2s; color:#666; background:transparent; border:none; font-size:15px; }
+  .nav-tab:hover { background:rgba(233,77,95,0.08); color:#c93a4b; }
+  .nav-tab.active { background:#fff; color:#e94d5f; box-shadow:0 -2px 12px rgba(233,77,95,0.12); position:relative; }
+  .nav-tab.active::after { content:''; position:absolute; bottom:0; left:10%; right:10%; height:3px; background:#e94d5f; border-radius:3px 3px 0 0; }
+
+  /* Love Languages Quiz */
+  .option-btn { transition:all 0.2s ease; cursor:pointer; }
+  .option-btn:hover { transform:translateX(6px); }
+  .option-btn.selected { border-color:#e94d5f!important; background:#fff5f6!important; box-shadow:0 0 0 3px rgba(233,77,95,0.15); }
+  .option-btn.selected .badge { background:#e94d5f!important; color:#fff!important; }
+  .bar-fill { transition:width 1.2s cubic-bezier(0.4,0,0.2,1); }
+
+  /* Courage Game */
+  .cg-body { background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%); }
+  .cg-section { background:rgba(255,255,255,0.05); backdrop-filter:blur(10px); border-radius:15px; padding:30px; margin-bottom:25px; border:1px solid rgba(255,255,255,0.1); }
+  .cg-section-title { font-size:1.5em; margin-bottom:20px; color:#e94560; display:flex; align-items:center; gap:10px; }
+  .cg-section-title::before { content:''; width:4px; height:24px; background:#e94560; border-radius:2px; }
+  .cg-question { background:rgba(0,0,0,0.2); border-radius:12px; padding:20px; margin-bottom:15px; transition:all 0.3s ease; }
+  .cg-question-text { font-size:1.1em; margin-bottom:15px; color:#f0f0f0; }
+  .cg-options { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .cg-option { padding:15px; border-radius:10px; cursor:pointer; transition:all 0.3s ease; border:2px solid transparent; text-align:center; }
+  .cg-option:hover { transform:translateY(-2px); }
+  .cg-option.brave { background:rgba(0,184,148,0.1); border-color:rgba(0,184,148,0.3); }
+  .cg-option.brave:hover { background:rgba(0,184,148,0.2); border-color:#00b894; }
+  .cg-option.coward { background:rgba(233,69,96,0.1); border-color:rgba(233,69,96,0.3); }
+  .cg-option.coward:hover { background:rgba(233,69,96,0.2); border-color:#e94560; }
+  .cg-option.selected.brave { background:rgba(0,184,148,0.3); border-color:#00b894; box-shadow:0 0 20px rgba(0,184,148,0.3); }
+  .cg-option.selected.coward { background:rgba(233,69,96,0.3); border-color:#e94560; box-shadow:0 0 20px rgba(233,69,96,0.3); }
+
+  .cg-warning-box { background:rgba(253,203,110,0.1); border:1px solid rgba(253,203,110,0.3); border-radius:10px; padding:20px; margin-top:20px; color:#fdcb6e; }
+  .cg-warning-options { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:15px; }
+  .cg-warning-option { padding:12px; background:rgba(253,203,110,0.1); border-radius:8px; cursor:pointer; transition:all 0.3s ease; border:2px solid transparent; text-align:center; }
+  .cg-warning-option:hover { background:rgba(253,203,110,0.2); }
+  .cg-warning-option.selected { background:rgba(253,203,110,0.3); border-color:#fdcb6e; }
+  .btn { display:inline-block; padding:15px 30px; border:none; border-radius:30px; font-size:1.1em; font-weight:bold; cursor:pointer; transition:all 0.3s ease; margin:10px; }
+  .btn-primary { background:linear-gradient(135deg,#e94560,#c23616); color:white; }
+  .btn-primary:hover { transform:translateY(-3px); box-shadow:0 10px 30px rgba(233,69,96,0.4); }
+  .btn-primary:disabled { opacity:0.4; cursor:not-allowed; transform:none; box-shadow:none; }
+  .btn-secondary { background:rgba(255,255,255,0.1); color:#e0e0e0; border:2px solid rgba(255,255,255,0.2); }
+  .btn-secondary:hover { background:rgba(255,255,255,0.2); transform:translateY(-3px); }
+  .cg-result-container { display:none; text-align:center; padding:40px; background:linear-gradient(135deg,#2d3436 0%,#636e72 100%); border-radius:20px; margin-top:30px; animation:fadeIn 0.5s ease; }
+  .answered { opacity:0.6; pointer-events:none; }
+  @media (max-width:768px) { .cg-options, .cg-warning-options { grid-template-columns:1fr; } }
+
+  /* Leaderboard */
+  .lb-row:nth-child(even) { background:rgba(0,0,0,0.03); }
+  .lb-row:hover { background:rgba(233,77,95,0.06); }
+  .lb-rank-1 { color:#e79217; }
+  .lb-rank-2 { color:#a0a0a0; }
+  .lb-rank-3 { color:#cd7f32; }
+
+  /* Username modal */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:9999; }
+  .modal-box { background:#fff; border-radius:20px; padding:40px; max-width:420px; width:90%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.3); }
+  .modal-box input { width:100%; padding:12px 16px; border:2px solid #e0e0e0; border-radius:12px; font-size:16px; outline:none; transition:border 0.2s; }
+  .modal-box input:focus { border-color:#e94d5f; }
+  .modal-box input.error { border-color:#e94560; animation:shake 0.3s; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+</style>
+</head>
+<body>
+
+<!-- ===== USERNAME MODAL ===== -->
+<div id="usernameModal" class="modal-overlay" style="display:none">
+  <div class="modal-box slide-up">
+    <div class="text-4xl mb-4">💕</div>
+    <h2 class="text-2xl font-bold text-gray-800 mb-2">欢迎来到爱情综合平台</h2>
+    <p class="text-gray-500 mb-6">请设置你的昵称，完成后将显示在排行榜中</p>
+    <input type="text" id="usernameInput" placeholder="输入你的昵称..." maxlength="20" autocomplete="off">
+    <p id="usernameError" class="text-red-500 text-sm mt-2 hidden">昵称不能为空</p>
+    <button onclick="setUsername()" class="mt-5 px-10 py-3 bg-gradient-to-r from-love-500 to-love-600 text-white text-lg font-semibold rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all">确认 ✨</button>
+  </div>
+</div>
+
+<!-- ===== TOP NAVIGATION ===== -->
+<div class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
+  <div class="max-w-6xl mx-auto px-4 flex items-center justify-between">
+    <div class="flex items-center gap-1 py-2 overflow-x-auto">
+      <button class="nav-tab active" onclick="switchTab('love')" id="tabLove">💝 爱的五种语言</button>
+      <button class="nav-tab" onclick="switchTab('courage')" id="tabCourage">💪 爱情勇气积分</button>
+      <button class="nav-tab" onclick="switchTab('leaderboard')" id="tabLeaderboard">🏆 排行榜</button>
+    </div>
+    <div class="flex items-center gap-3 text-sm text-gray-500">
+      <span id="navUsername" class="hidden">👤 <span id="navUsernameText"></span></span>
+      <button onclick="showChangeUsername()" class="text-love-500 hover:text-love-600 text-sm">修改昵称</button>
+    </div>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto px-4 py-4">
+  <!-- ===== TAB 1: LOVE LANGUAGES ===== -->
+  <div class="content-tab active" id="tabContentLove">
+
+    <!-- INTRO -->
+    <section id="llIntro" class="min-h-[70vh] flex items-center justify-center px-4 py-12">
+      <div class="max-w-xl w-full text-center">
+        <div class="heart-beat text-6xl mb-6">💝</div>
+        <h1 class="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-love-500 to-gold-500 bg-clip-text text-transparent">爱的五种语言</h1>
+        <p class="text-lg text-gray-500 mb-2">Winnie 简版 · 互动测验</p>
+        <div class="w-16 h-1 bg-gradient-to-r from-love-400 to-gold-400 mx-auto my-6 rounded-full"></div>
+        <p class="text-gray-500 mb-8 max-w-md mx-auto leading-relaxed">共 <strong>10 道题</strong>，每题选一个最符合你感觉的选项。<br>约需 2-3 分钟完成。</p>
+        <div class="flex flex-wrap justify-center gap-2 mb-8">
+          <span class="px-3 py-1.5 bg-love-50 text-love-600 rounded-full text-sm font-medium">A 肯定的言语</span>
+          <span class="px-3 py-1.5 bg-gold-50 text-gold-700 rounded-full text-sm font-medium">B 高质量的陪伴</span>
+          <span class="px-3 py-1.5 bg-orange-50 text-orange-600 rounded-full text-sm font-medium">C 接受礼物</span>
+          <span class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-full text-sm font-medium">D 服务的行动</span>
+          <span class="px-3 py-1.5 bg-purple-50 text-purple-600 rounded-full text-sm font-medium">E 身体的接触</span>
+        </div>
+        <button onclick="llStartQuiz()" class="px-10 py-4 bg-gradient-to-r from-love-500 to-love-600 text-white text-lg font-semibold rounded-2xl shadow-lg shadow-love-200 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all">开始测验 ✨</button>
+        <div id="llSavedHint" class="hidden mt-4">
+          <button onclick="llLoadSaved()" class="text-sm text-love-500 underline hover:text-love-600">📋 查看上次结果</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section id="llQuiz" class="hidden">
+      <div class="max-w-2xl mx-auto px-4 py-6">
+        <div class="flex items-center justify-between mb-2">
+          <button onclick="llPrev()" id="llPrevBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-white shadow-sm hover:shadow-md transition-all text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed">←</button>
+          <div class="text-sm font-medium text-gray-400"><span id="llQNum">1</span> / 10</div>
+          <div class="w-10 h-10"></div>
+        </div>
+        <div class="w-full h-2 bg-gray-200 rounded-full mb-8 overflow-hidden">
+          <div id="llProgress" class="h-full bg-gradient-to-r from-love-400 to-love-500 rounded-full transition-all duration-500" style="width:10%"></div>
+        </div>
+        <div id="llCard" class="bg-white rounded-3xl shadow-xl shadow-gray-100 p-6 md:p-8 mb-6 fade-in">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-8 h-8 rounded-full bg-love-100 text-love-500 flex items-center justify-center text-sm font-bold" id="llBadge">1</span>
+            <span class="text-sm text-gray-400 font-medium">选出你最希望别人对你做的那一个</span>
+          </div>
+          <h3 id="llQuestion" class="text-lg font-semibold text-gray-800 mb-5 leading-relaxed"></h3>
+          <div id="llOptions" class="space-y-3"></div>
+        </div>
+        <div class="flex justify-end">
+          <button onclick="llNext()" id="llNextBtn" class="px-8 py-3 bg-gradient-to-r from-love-500 to-love-600 text-white font-semibold rounded-2xl shadow-lg shadow-love-200 hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed transition-all">下一题 →</button>
+          <button onclick="llShowResults()" id="llSubmitBtn" class="hidden px-8 py-3 bg-gradient-to-r from-gold-400 to-gold-500 text-white font-semibold rounded-2xl shadow-lg shadow-gold-200 hover:shadow-xl hover:-translate-y-0.5 transition-all">查看结果 🎉</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section id="llResults" class="hidden">
+      <div class="max-w-2xl mx-auto px-4 py-8">
+        <div class="text-center mb-10 slide-up">
+          <div class="text-5xl mb-4">💝</div>
+          <h2 class="text-3xl md:text-4xl font-bold mb-2 text-gray-800">你的爱的语言</h2>
+          <p class="text-gray-500">以下是你的爱语分布（A-E 对应五大爱语）</p>
+        </div>
+        <div id="llScoreBars" class="space-y-5 mb-10 slide-up"></div>
+        <div id="llInterpretation" class="bg-white rounded-3xl shadow-xl shadow-gray-100 p-6 md:p-8 mb-6 slide-up"></div>
+        <div id="llDetailTable" class="bg-white rounded-3xl shadow-xl shadow-gray-100 p-6 md:p-8 mb-6 slide-up"></div>
+        <div class="flex flex-wrap gap-3 justify-center slide-up">
+          <button onclick="llRestart()" class="px-6 py-3 bg-love-50 text-love-600 font-semibold rounded-2xl hover:bg-love-100 transition-all">🔄 重新测验</button>
+          <button onclick="llShare()" class="px-6 py-3 bg-white text-gray-600 font-semibold rounded-2xl shadow-sm hover:shadow-md transition-all border border-gray-200">📋 复制结果</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ===== TAB 2: COURAGE GAME ===== -->
+  <div class="content-tab" id="tabContentCourage">
+    <div class="cg-body" style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%); border-radius:20px; padding:20px;">
+      <div class="container" style="max-width:1000px; margin:0 auto; color:#e0e0e0;">
+
+        <div class="header" style="text-align:center; padding:40px 20px; background:linear-gradient(135deg,#e94560 0%,#c23616 100%); border-radius:20px; margin-bottom:30px; box-shadow:0 10px 40px rgba(233,69,96,0.3);">
+          <h1 style="font-size:2.5em; margin-bottom:15px; text-shadow:2px 2px 4px rgba(0,0,0,0.3);">💒 爱情勇气积分制游戏</h1>
+          <p style="font-size:1.1em; opacity:0.9; max-width:700px; margin:0 auto; line-height:1.6;">深度复盘才明白，爱情是一场关于勇气的积分制游戏。<br>面对以下情境，你会选择勇敢还是懦弱？</p>
+        </div>
+
+        <!-- Sections -->
+        <div class="cg-section"><div class="cg-section-title">一、开端告白期</div>
+          <div class="cg-question" data-id="q1"><div class="cg-question-text">你喜欢上了一个人，你会怎么做？</div>
+            <div class="cg-options"><div class="cg-option brave" data-score="10" onclick="cgSelect(this)"><div>💪 正视自己心意，主动表明喜欢</div></div><div class="cg-option coward" data-score="-20" onclick="cgSelect(this)"><div>😰 明明心动，但长期观望，等对方主动</div></div></div></div>
+          <div class="cg-question" data-id="q2"><div class="cg-question-text">你想表白，但害怕被拒绝，你会？</div>
+            <div class="cg-options"><div class="cg-option brave" data-score="10" onclick="cgSelect(this)"><div>💪 不怕被拒绝，坦荡表达好感</div></div><div class="cg-option coward" data-score="-20" onclick="cgSelect(this)"><div>😰 用朋友身份长期搞暧昧，不敢确定关系</div></div></div></div>
+          <div class="cg-question" data-id="q3"><div class="cg-question-text">你觉得和对方有差距（经济/外貌/家庭等），你会？</div>
+            <div class="cg-options"><div class="cg-option brave" data-score="10" onclick="cgSelect(this)"><div>💪 敢于正视差距、外界眼光，大胆接触对方</div></div><div class="cg-option coward" data-score="-20" onclick="cgSelect(this)"><div>😰 自卑退缩，觉得配不上直接逃跑</div></div></div></div></div>
+
+        <div class="cg-section"><div class="cg-section-title">二、热恋交往期</div>
+          <div class="cg-question" data-id="q4"><div class="cg-question-text">你们在一起了，你会怎么对待这段关系？</div>
+            <div class="cg-options"><div class="cg-option brave" data-score="10" onclick="cgSelect(this)"><div>💪 大方公开恋情，把对方带入自己的生活、社交</div></div><div class="cg-option coward" data-score="-20" onclick="cgSelect(this)"><div>😰 将对方藏起来，不让朋友和家人知道</div></div></div></div>
+          <div class="cg-question" data-id="q5"><div class="cg-question-text">和对方的相处方式，你倾向于？</div>
+            <div class="cg-options"><div class="cg-option brave" data-score="10" onclick="cgSelect(this)"><div>💪 展示真实自己，不刻意伪装讨好</div></div><div class="cg-option coward" data-score="-20" onclick="cgSelect(this)"><div>😰 小心翼翼讨好，不敢做真实的自己</div></div></div></div>
+          <div class="cg-question" data-id="q6"><div class="cg-question-text">相处遇到问题时，你会？</div>
+            <div class="cg-options"><div class="cg-option brave" data-score="10" onclick="cgSelect(this)"><div>💪 主动沟通，耐心解决每一个问题</div></div><div class="cg-option coward" data-score="-20" onclick="cgSelect(this)"><div>😰 假装没事，回避问题一味忍让</div></div></div></div></div>
+
+        <div class="cg-section"><div class="cg-section-title">三、关系深入期</div>
+          <div class="cg-question" data-id="q7"><div class="cg-question-text">双方生活习惯有很大不同，你会？</div>
+            <div class="cg-options"><div class="cg-option brave" data-score="10" onclick="cgSelect(this)"><div>💪 愿意为对方调整但不失去自我</div></div><div class="cg-option coward" data-score="-20" onclick="cgSelect(this)"><div>😰 强行改变对方来迎合自己</div></div></div></div>
+          <div class="cg-question" data-id="q8"><div class="cg-question-text">如果对方需要情感支持，你会？</div>
+            <div class="cg-options"><div class="cg-option brave" data-score="10" onclick="cgSelect(this)"><div>💪 耐心倾听，给予温暖和鼓励</div></div><div class="cg-option coward" data-score="-20" onclick="cgSelect(this)"><div>😰 觉得烦，敷衍应付</div></div></div></div>
+          <div class="cg-question" data-id="q9"><div class="cg-question-text">当为了未来规划产生分歧，你会？</div>
+            <div class="cg-options"><div class="cg-option brave" data-score="10" onclick="cgSelect(this)"><div>💪 坦诚分享规划，共同寻找平衡点</div></div><div class="cg-option coward" data-score="-20" onclick="cgSelect(this)"><div>😰 回避规划话题，走一步看一步</div></div></div></div>
+          <div class="cg-question" data-id="q10"><div class="cg-question-text">对方心情不好但不愿开口，你会？</div>
+            <div class="cg-options"><div class="cg-option brave" data-score="10" onclick="cgSelect(this)"><div>💪 温柔表达关心，给予空间但让其知道你在</div></div><div class="cg-option coward" data-score="-20" onclick="cgSelect(this)"><div>😰 你不说我也不问，冷战到底</div></div></div></div>
+          <div class="cg-question" data-id="q11"><div class="cg-question-text">对方有了新的异性朋友，你会？</div>
+            <div class="cg-options"><div class="cg-option brave" data-score="10" onclick="cgSelect(this)"><div>💪 信任对方，坦然表达但不过度干涉</div></div><div class="cg-option coward" data-score="-20" onclick="cgSelect(this)"><div>😰 不断查岗盘问，充满不安和猜忌</div></div></div></div>
+          <div class="cg-question" data-id="q12"><div class="cg-question-text">对方遭遇低谷（失业/生病等），你会？</div>
+            <div class="cg-options"><div class="cg-option brave" data-score="10" onclick="cgSelect(this)"><div>💪 坚定站在对方身边，给予支持和陪伴</div></div><div class="cg-option coward" data-score="-20" onclick="cgSelect(this)"><div>😰 害怕被拖累，考虑离开</div></div></div></div>
+          <div class="cg-question" data-id="q13"><div class="cg-question-text">内心感到不安和焦虑时，你会？</div>
+            <div class="cg-options"><div class="cg-option brave" data-score="10" onclick="cgSelect(this)"><div>💪 坦诚说出内心感受，不独自内耗</div></div><div class="cg-option coward" data-score="-20" onclick="cgSelect(this)"><div>😰 积攒委屈闭口不提，独自内耗沉默</div></div></div></div></div>
+
+        <div class="cg-section"><div class="cg-section-title">四、矛盾爆发期</div>
+          <div class="cg-question" data-id="q14"><div class="cg-question-text">吵架后，你会怎么处理？</div>
+            <div class="cg-options"><div class="cg-option brave" data-score="10" onclick="cgSelect(this)"><div>💪 正视问题，不推卸责任，主动认错</div></div><div class="cg-option coward" data-score="-20" onclick="cgSelect(this)"><div>😰 说狠话、冷战、断联惩罚对方</div></div></div></div>
+          <div class="cg-question" data-id="q15"><div class="cg-question-text">对方犯错让你很难受，你会？</div>
+            <div class="cg-options"><div class="cg-option brave" data-score="10" onclick="cgSelect(this)"><div>💪 即使情绪崩溃，也坚持好好沟通</div></div><div class="cg-option coward" data-score="-20" onclick="cgSelect(this)"><div>😰 拒绝改变，摆烂消耗情感</div></div></div></div>
+          <div class="cg-question" data-id="q16"><div class="cg-question-text">隔阂很深了，你还愿意修复吗？</div>
+            <div class="cg-options"><div class="cg-option brave" data-score="10" onclick="cgSelect(this)"><div>💪 愿意给彼此一次修复的机会，认真沟通</div></div><div class="cg-option coward" data-score="-20" onclick="cgSelect(this)"><div>😰 积累怨恨不沟通，暗中慢慢疏远</div></div></div></div>
+          <div class="cg-warning-box">
+            <h3 style="margin-bottom:10px; font-size:1.2em;">⚠️ 底线伤害警告</h3>
+            <p>以下行为会大额扣分 -100，可能立马催生分手想法。你在关系中是否有过以下行为？</p>
+            <div class="cg-warning-options">
+              <div class="cg-warning-option" data-score="-100" onclick="cgSelectWarning(this)"><div>出轨/精神出轨</div></div>
+              <div class="cg-warning-option" data-score="-100" onclick="cgSelectWarning(this)"><div>隐瞒大额负债</div></div>
+              <div class="cg-warning-option" data-score="-100" onclick="cgSelectWarning(this)"><div>在亲友面前指责伴侣</div></div>
+              <div class="cg-warning-option" data-score="-100" onclick="cgSelectWarning(this)"><div>拿对方短板和伤痛攻击</div></div></div>
+            <p style="margin-top:15px; text-align:center; color:#a0a0a0;">点击选择你有过的行为（可多选），没有则不选</p></div></div>
+
+        <div class="cg-section"><div class="cg-section-title">五、变质分手期</div>
+          <div class="cg-question" data-id="q17"><div class="cg-question-text">如果爱意消散了，你会？</div>
+            <div class="cg-options"><div class="cg-option brave" data-score="10" onclick="cgSelect(this)"><div>💪 清楚爱意消散，真诚坦白</div></div><div class="cg-option coward" data-score="-20" onclick="cgSelect(this)"><div>😰 不爱了也不说，敷衍或冷暴力逼对方离开</div></div></div></div></div>
+
+        <div style="text-align:center; margin:30px 0;">
+          <button class="btn btn-primary" id="cgSubmitBtn" onclick="cgShowResult()" disabled>📊 查看我的爱情勇气得分</button>
+          <button class="btn btn-secondary" onclick="cgReset()">🔄 重新测试</button>
+        </div>
+
+        <div class="cg-result-container" id="cgResult">
+          <div class="result-icon" id="cgResultIcon" style="font-size:4em; margin-bottom:20px;"></div>
+          <div class="result-title" id="cgResultTitle" style="font-size:2em; margin-bottom:20px; color:#fdcb6e;"></div>
+          <div class="result-score" id="cgResultScore" style="font-size:4em; font-weight:bold; margin:20px 0;"></div>
+          <div class="result-message" id="cgResultMessage" style="font-size:1.2em; line-height:1.8; max-width:600px; margin:0 auto;"></div>
+          <button class="btn btn-secondary" onclick="cgReset()" style="margin-top:20px;">🔄 重新测试</button>
+        </div>
+
+        <div style="text-align:center; padding:30px; color:#a0a0a0; font-size:0.9em; border-top:1px solid rgba(255,255,255,0.1); margin-top:30px;">
+          <p>💒 爱情是一场关于勇气的积分制游戏</p>
+          <p style="margin-top:10px;">勇于热爱，勇于低头，勇于守护</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TAB 3: LEADERBOARD ===== -->
+  <div class="content-tab" id="tabContentLeaderboard">
+    <div class="max-w-3xl mx-auto py-8 px-4">
+      <div class="text-center mb-10 slide-up">
+        <div class="text-5xl mb-4">🏆</div>
+        <h2 class="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-love-500 to-gold-500 bg-clip-text text-transparent">爱情勇气排行榜</h2>
+        <p class="text-gray-500">看看大家的爱情勇气积分排名</p>
+      </div>
+
+      <div class="bg-white rounded-3xl shadow-xl shadow-gray-100 p-6 md:p-8 slide-up">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-lg font-bold text-gray-700">📊 积分排行</h3>
+          <span class="text-sm text-gray-400" id="lbCount">共 0 人</span>
+        </div>
+        <div id="lbHeader" class="hidden grid-cols-[40px_1fr_120px] gap-4 px-4 py-3 bg-gray-50 rounded-xl text-sm font-semibold text-gray-500 mb-2">
+          <span class="text-center">排名</span><span>昵称</span><span class="text-right">得分</span>
+        </div>
+        <div id="lbList">
+          <div class="text-center py-16 text-gray-400">
+            <div class="text-5xl mb-4">📋</div>
+            <p>还没有人完成测试</p>
+            <p class="text-sm mt-2">去完成「爱情勇气积分测试」即可上榜！</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 bg-white rounded-3xl shadow-xl shadow-gray-100 p-6 md:p-8 slide-up">
+        <h3 class="text-lg font-bold text-gray-700 mb-4">📜 我的历史记录</h3>
+        <div id="lbMyHistory">
+          <p class="text-gray-400 text-center py-6">你还没有完成过测试</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+//  GLOBAL STATE
+// ============================================================
+const USERNAME_KEY = 'love_platform_username';
+const LEADERBOARD_KEY = 'love_courage_leaderboard';
+const LL_STORAGE_KEY = 'love_languages_quiz_result';
+let llCurrentQ = 0;
+let llAnswers = new Array(10).fill(null);
+
+// ============================================================
+//  USERNAME
+// ============================================================
+function getUsername() {
+  return localStorage.getItem(USERNAME_KEY) || '';
+}
+
+function showUsernameModal() {
+  document.getElementById('usernameModal').style.display = 'flex';
+  document.getElementById('usernameInput').value = '';
+  document.getElementById('usernameError').classList.add('hidden');
+  setTimeout(() => document.getElementById('usernameInput').focus(), 100);
+}
+
+function setUsername() {
+  const val = document.getElementById('usernameInput').value.trim();
+  if (!val) {
+    document.getElementById('usernameError').classList.remove('hidden');
+    document.getElementById('usernameInput').classList.add('error');
+    setTimeout(() => document.getElementById('usernameInput').classList.remove('error'), 400);
+    return;
+  }
+  localStorage.setItem(USERNAME_KEY, val);
+  document.getElementById('usernameModal').style.display = 'none';
+  updateNavUsername();
+}
+
+function showChangeUsername() {
+  document.getElementById('usernameInput').value = getUsername();
+  showUsernameModal();
+}
+
+function updateNavUsername() {
+  const u = getUsername();
+  if (u) {
+    document.getElementById('navUsername').classList.remove('hidden');
+    document.getElementById('navUsernameText').textContent = u;
+  } else {
+    document.getElementById('navUsername').classList.add('hidden');
+  }
+}
+
+// Enter key support
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('usernameInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') setUsername();
+  });
+});
+
+// ============================================================
+//  TAB SWITCHING
+// ============================================================
+function switchTab(tab) {
+  document.querySelectorAll('.content-tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tabContent' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+  document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+  if (tab === 'leaderboard') refreshLeaderboard();
+}
+
+// ============================================================
+//  LOVE LANGUAGES QUIZ (LL)
+// ============================================================
+const llQuizData = [
+  { title:"当我感觉被爱时，是因为对方：", options:{ A:"跟我说\u201c我很重要\u201d或\u201c我很棒\u201d", B:"和我安静地共度时光", C:"给我一个贴心的小礼物", D:"主动帮我完成一件事", E:"拥抱我或拉着我的手" }},
+  { title:"我更感动于：", options:{ A:"对方给我写一张暖心卡片", B:"一起出去散步或旅行", C:"对方给我准备一个特别的惊喜礼物", D:"对方帮我解决一项我不喜欢做的家务", E:"对方在众人面前自然地搂住我" }},
+  { title:"我更希望：", options:{ A:"被表扬和鼓励", B:"有人专心听我讲话，不分心看手机", C:"节日或非节日都有人送我小东西", D:"对方主动承担一些我的负担", E:"频繁地有身体接触，比如牵手、依靠" }},
+  { title:"如果我难过时，我最希望对方：", options:{ A:"安慰我并用语言鼓励我", B:"安静地陪我坐着，哪怕不说话", C:"买个我喜欢的东西安慰我", D:"替我处理掉一件我正烦的事情", E:"给我一个长长的抱抱" }},
+  { title:"我觉得爱一个人最重要的是：", options:{ A:"说出你在乎他/她", B:"花时间陪伴他/她", C:"给对方一些体现心意的小物", D:"做实事帮对方分担", E:"经常亲昵互动" }},
+  { title:"如果我生日，最想收到的礼物是：", options:{ A:"一段写得走心的语音或纸条", B:"对方安排好时间专门陪我过一天", C:"一个我心心念念的礼物", D:"对方帮我完成一个愿望清单里的任务", E:"一个温暖的拥抱和亲吻" }},
+  { title:"我更希望每天有：", options:{ A:"甜蜜的夸奖或鼓励", B:"有意义的共处时光", C:"惊喜的小礼物或纪念物", D:"有人帮我做小事，比如倒垃圾", E:"自然的牵手、靠肩、拥抱" }},
+  { title:"当我谈恋爱时，我会觉得：", options:{ A:"对方常说他/她有多爱我让我觉得幸福", B:"和对方一起做什么都很开心", C:"喜欢被记得、被送礼物", D:"我特别感激对方帮我完成任何一件小事", E:"我们的身体接触让我觉得很亲密" }},
+  { title:"如果对方忙于工作，我最希望他/她：", options:{ A:"抽空发一段鼓励我的话", B:"即使再忙也安排一点时间专心陪我", C:"下班后给我带一杯我爱喝的饮料", D:"忙完之后第一时间帮我处理点事", E:"回来之后紧紧地抱我一下" }},
+  { title:"如果和我关系最好的人远在他方，我最希望他/她：", options:{ A:"发来一些温暖贴心的话", B:"安排好时间专门视频聊聊天", C:"快递一个让我开心的礼物", D:"远程帮我出点主意/解决问题", E:"回来第一件事是给我一个大大的拥抱" }}
+];
+
+const llCategories = {
+  A:{ name:"肯定的言语", icon:"💬", color:"love", bg:"bg-red-100", bar:"from-red-400 to-red-300", desc:"你喜欢听到肯定、赞美和鼓励的话语。言语对你来说是爱的强有力表达——一句\u201c你很棒\u201d、一张暖心卡片、或真诚的称赞都能让你的心充满温暖。", tips:["多说肯定和鼓励的话","写便条、发甜蜜语音","在他人面前称赞对方","避免批评和指责"] },
+  B:{ name:"高质量的陪伴", icon:"⏰", color:"gold", bg:"bg-amber-100", bar:"from-amber-500 to-amber-400", desc:"你重视一起度过的专注时光。当你和对方全神贯注地相处——不被手机打扰的聊天、一起散步旅行、或计划好的约会——你感受到深深的爱与连接。", tips:["放下手机，专注倾听","计划定期约会和旅行","一起散步或安静共处","创造只属于两人的仪式"] },
+  C:{ name:"接受礼物", icon:"🎁", color:"warm", bg:"bg-orange-100", bar:"from-orange-500 to-orange-400", desc:"礼物在你心中代表着爱与思念。重要的不是价格，而是那份心意——对方为你挑选礼物的用心，让你感受到被珍视。", tips:["不一定要贵重，重在心意","出差或逛街时想到对方","节日和日常都可以送","亲手制作更显珍贵"] },
+  D:{ name:"服务的行动", icon:"🛠️", color:"blue", bg:"bg-blue-100", bar:"from-blue-500 to-blue-400", desc:"你从行动中感受爱。当对方帮你做家务、处理琐事、分担负担——这些实际的行动比千言万语更能表达爱。", tips:["主动分担家务和琐事","帮对方处理烦心事","用行动代替言语","发现对方需要并悄悄去做"] },
+  E:{ name:"身体的接触", icon:"🤗", color:"purple", bg:"bg-purple-100", bar:"from-purple-500 to-purple-400", desc:"身体接触是你的主要爱语。拥抱、牵手、亲吻——这些肢体接触让你感到安全和被爱。", tips:["多拥抱、牵手、亲吻","散步时挽着手","坐在身边而非对面","用肢体语言表达爱意"] }
+};
+
+const llOptionBadgeColors = { A:'bg-red-50 text-red-500', B:'bg-amber-50 text-amber-600', C:'bg-orange-50 text-orange-600', D:'bg-blue-50 text-blue-600', E:'bg-purple-50 text-purple-600' };
+const llOptionLabels = ['A','B','C','D','E'];
+
+(function llInit() {
+  const saved = localStorage.getItem(LL_STORAGE_KEY);
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      if (data.answers && data.answers.length === 10) document.getElementById('llSavedHint').classList.remove('hidden');
+    } catch(e) {}
+  }
+})();
+
+function llStartQuiz() {
+  document.getElementById('llIntro').classList.add('hidden');
+  document.getElementById('llQuiz').classList.remove('hidden');
+  document.getElementById('llResults').classList.add('hidden');
+  llCurrentQ = 0;
+  llAnswers = new Array(10).fill(null);
+  llRenderQ();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function llLoadSaved() {
+  const saved = localStorage.getItem(LL_STORAGE_KEY);
+  if (!saved) return;
+  try {
+    const data = JSON.parse(saved);
+    if (data.answers && data.answers.length === 10) {
+      llAnswers = data.answers;
+      llCurrentQ = 9;
+      document.getElementById('llIntro').classList.add('hidden');
+      document.getElementById('llQuiz').classList.add('hidden');
+      document.getElementById('llResults').classList.remove('hidden');
+      llRenderSavedResults();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  } catch(e) {}
+}
+
+function llRenderQ() {
+  const q = llQuizData[llCurrentQ];
+  document.getElementById('llQNum').textContent = llCurrentQ + 1;
+  document.getElementById('llBadge').textContent = llCurrentQ + 1;
+  document.getElementById('llQuestion').textContent = q.title;
+  document.getElementById('llProgress').style.width = ((llCurrentQ + 1) / 10 * 100) + '%';
+  document.getElementById('llPrevBtn').disabled = llCurrentQ === 0;
+  const sel = llAnswers[llCurrentQ];
+  let html = '';
+  llOptionLabels.forEach(label => {
+    const isSel = sel === label;
+    const badgeCls = llOptionBadgeColors[label];
+    html += `<button onclick="llSelect('${label}')" class="option-btn w-full text-left p-4 rounded-2xl border-2 border-gray-200 bg-white hover:border-love-300 ${isSel?'selected':''}"><div class="flex items-start gap-3"><span class="badge flex-shrink-0 w-9 h-9 rounded-xl ${badgeCls} flex items-center justify-center font-bold text-sm ${isSel?'!bg-love-500 !text-white':''}">${label}</span><p class="text-gray-700 leading-relaxed pt-1">${q.options[label]}</p></div></button>`;
+  });
+  document.getElementById('llOptions').innerHTML = html;
+  const nextBtn = document.getElementById('llNextBtn');
+  const subBtn = document.getElementById('llSubmitBtn');
+  if (llCurrentQ === 9) { nextBtn.classList.add('hidden'); subBtn.classList.remove('hidden'); }
+  else { nextBtn.classList.remove('hidden'); subBtn.classList.add('hidden'); }
+  const card = document.getElementById('llCard');
+  card.classList.remove('fade-in'); void card.offsetWidth; card.classList.add('fade-in');
+}
+
+function llSelect(choice) { llAnswers[llCurrentQ] = choice; llRenderQ(); }
+function llNext() { if (llCurrentQ < 9) { llCurrentQ++; llRenderQ(); window.scrollTo({ top: 0, behavior: 'smooth' }); } }
+function llPrev() { if (llCurrentQ > 0) { llCurrentQ--; llRenderQ(); } }
+
+function llShowResults() {
+  if (llAnswers.includes(null)) {
+    const u = llAnswers.map((a,i)=>a===null?i+1:null).filter(x=>x);
+    alert(`还有 ${u.length} 题未回答：第 ${u.slice(0,5).join(', ')} 题`);
+    return;
+  }
+  const scores = { A:0, B:0, C:0, D:0, E:0 };
+  llAnswers.forEach(a => scores[a]++);
+  localStorage.setItem(LL_STORAGE_KEY, JSON.stringify({ answers:[...llAnswers], timestamp:new Date().toISOString() }));
+  llRenderSavedResults();
+  llSpawnConfetti();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function llRenderSavedResults() {
+  const scores = { A:0, B:0, C:0, D:0, E:0 };
+  llAnswers.forEach(a => scores[a]++);
+  const sorted = Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+  const maxScore = sorted[0][1];
+  document.getElementById('llQuiz').classList.add('hidden');
+  document.getElementById('llResults').classList.remove('hidden');
+  let barsHTML = '';
+  sorted.forEach(([cat, score]) => {
+    const pct = score > 0 ? Math.round(score/10*100) : 0;
+    const info = llCategories[cat];
+    const isTop = score === maxScore && score > 0;
+    barsHTML += `<div><div class="flex items-center justify-between mb-1.5"><span class="font-semibold text-gray-700">${info.icon} ${info.name} ${isTop?'👑':''}</span><span class="text-sm font-bold text-gray-500">${score} / 10</span></div><div class="w-full h-3 rounded-full ${info.bg} overflow-hidden"><div class="bar-fill h-full rounded-full bg-gradient-to-r ${info.bar}" style="width:${pct}%"></div></div></div>`;
+  });
+  document.getElementById('llScoreBars').innerHTML = barsHTML;
+  setTimeout(() => { document.querySelectorAll('.bar-fill').forEach(bar => { const w = bar.style.width; bar.style.width = '0%'; void bar.offsetWidth; bar.style.width = w; }); }, 100);
+  const top = sorted.filter(([,s])=>s===maxScore && s>0);
+  const topInfo = top.length>0 ? llCategories[top[0][0]] : null;
+  const topNames = top.map(([c])=>llCategories[c].name).join(' 和 ');
+  let interpHTML = '';
+  if (topInfo) {
+    interpHTML = `<h3 class="text-xl font-bold mb-4">📖 你的主要爱语：${topNames}</h3><p class="text-gray-600 leading-relaxed mb-4">${topInfo.desc}</p><div class="bg-${topInfo.color}-50 rounded-2xl p-5 mt-4"><p class="font-semibold text-gray-700 mb-2">💡 建议：</p><ul class="space-y-2">${topInfo.tips.map(t=>`<li class="flex items-start gap-2 text-gray-600"><span>✦</span>${t}</li>`).join('')}</ul></div>`;
+    if (top.length===1 && sorted[1][1]>0) { const second = llCategories[sorted[1][0]]; interpHTML += `<div class="mt-4 p-4 rounded-2xl bg-gray-50"><p class="text-sm text-gray-500">📌 你的次要爱语是 <strong>${second.name}</strong>（${sorted[1][1]}分）。在关系中，这两种爱语同样值得关注。</p></div>`; }
+  }
+  document.getElementById('llInterpretation').innerHTML = interpHTML;
+  let tableHTML = `<h3 class="text-lg font-bold mb-4">📋 答题明细</h3><div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="border-b border-gray-200"><th class="text-left py-2 pr-2 text-gray-400 w-12">#</th><th class="text-left py-2 pr-2 text-gray-400">题目</th><th class="text-center py-2 text-gray-400 w-16">选择</th></tr></thead><tbody>`;
+  llQuizData.forEach((q,i) => {
+    const ans = llAnswers[i];
+    const info = llCategories[ans];
+    tableHTML += `<tr class="border-b border-gray-100"><td class="py-2 pr-2 text-gray-400">${i+1}</td><td class="py-2 pr-2 text-gray-700">${q.title}</td><td class="py-2 text-center"><span class="inline-block px-2 py-0.5 rounded-lg text-xs font-bold ${llOptionBadgeColors[ans]}">${ans} ${info.icon}</span></td></tr>`;
+  });
+  tableHTML += '</tbody></table></div>';
+  document.getElementById('llDetailTable').innerHTML = tableHTML;
+}
+
+function llRestart() {
+  localStorage.removeItem(LL_STORAGE_KEY);
+  document.getElementById('llSavedHint').classList.add('hidden');
+  llCurrentQ = 0; llAnswers = new Array(10).fill(null);
+  document.getElementById('llResults').classList.add('hidden');
+  document.getElementById('llQuiz').classList.remove('hidden');
+  llRenderQ(); window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function llShare() {
+  const scores = { A:0, B:0, C:0, D:0, E:0 };
+  llAnswers.forEach(a => scores[a]++);
+  const sorted = Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+  const lines = sorted.map(([cat,score])=>{ const info=llCategories[cat]; return `${info.icon} ${info.name}: ${'█'.repeat(score)}${'░'.repeat(10-score)} ${score}/10`; });
+  const text = `💝 我的爱的五种语言（Winnie简版）💝\n\n${lines.join('\n')}\n\n🔗 你也来测：5lovelanguages.com`;
+  navigator.clipboard.writeText(text).then(()=>alert('✅ 结果已复制到剪贴板！')).catch(()=>prompt('📋 手动复制以下结果：', text));
+}
+
+function llSpawnConfetti() {
+  const colors = ['#e94d5f','#f5c675','#f97316','#60a5fa','#a78bfa','#34d399','#f472b6'];
+  for (let i=0; i<40; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div'); el.className = 'confetti';
+      el.style.left = Math.random()*100+'%'; el.style.top = -(Math.random()*40+10)+'px';
+      el.style.width = (Math.random()*10+6)+'px'; el.style.height = (Math.random()*14+6)+'px';
+      el.style.background = colors[Math.floor(Math.random()*colors.length)];
+      el.style.borderRadius = Math.random()>0.5?'50%':'2px';
+      el.style.animationDuration = (Math.random()*2+1.5)+'s';
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),2500);
+    }, i*30);
+  }
+}
+
+// ============================================================
+//  COURAGE GAME (CG)
+// ============================================================
+let cgScore = 0;
+let cgAnswered = new Set();
+const cgTotalQ = 17;
+
+(function cgInit() {
+  // no-op
+})();
+
+function cgSelect(el) {
+  const q = el.closest('.cg-question');
+  const qid = q.dataset.id;
+  if (cgAnswered.has(qid)) {
+    const prev = q.querySelector('.cg-option.selected');
+    if (prev) { cgScore -= parseInt(prev.dataset.score); prev.classList.remove('selected'); }
+  }
+  el.classList.add('selected');
+  cgScore += parseInt(el.dataset.score);
+  cgAnswered.add(qid);
+  cgUpdateDisplay();
+}
+
+function cgSelectWarning(el) {
+  if (el.classList.contains('selected')) { el.classList.remove('selected'); cgScore -= parseInt(el.dataset.score); }
+  else { el.classList.add('selected'); cgScore += parseInt(el.dataset.score); }
+  cgUpdateDisplay();
+}
+
+function cgUpdateDisplay() {
+  document.getElementById('cgSubmitBtn').disabled = cgAnswered.size < cgTotalQ;
+}
+
+function cgShowResult() {
+  const rc = document.getElementById('cgResult');
+  const icon = document.getElementById('cgResultIcon');
+  const title = document.getElementById('cgResultTitle');
+  const score = document.getElementById('cgResultScore');
+  const msg = document.getElementById('cgResultMessage');
+  rc.style.display = 'block';
+  score.textContent = cgScore + ' 分';
+
+  if (cgScore>=150) {
+    icon.textContent='💕'; title.textContent='爱情勇士！';
+    score.style.color='#00b894';
+    msg.innerHTML=`<p>你的勇气得分非常高！你是一个在爱情中敢于付出、敢于面对、敢于承担的人。</p><p style="margin-top:15px;">你懂得经营感情的秘诀：<strong>勇敢地去做加分项</strong>。即使激素褪去，你依然能够保持初心，用行动守护爱情。</p><p style="margin-top:15px; color:#fdcb6e;">继续保持这份勇气，你的爱情会越来越甜蜜！</p>`;
+  } else if (cgScore>=50) {
+    icon.textContent='💪'; title.textContent='勇敢的恋人';
+    score.style.color='#00b894';
+    msg.innerHTML=`<p>你的勇气得分不错！你在大多数情况下能够勇敢面对爱情中的挑战。</p><p style="margin-top:15px;">还有提升空间：试着在更多情境中选择勇敢，你会发现爱情会回馈你更多。</p><p style="margin-top:15px; color:#fdcb6e;">记住：勇气是可以练习的，每一次勇敢的选择都在为爱情加分！</p>`;
+  } else if (cgScore>=0) {
+    icon.textContent='😊'; title.textContent='爱情新手';
+    score.style.color='#a0a0a0';
+    msg.innerHTML=`<p>你的勇气得分处于中等水平。你有时勇敢，有时退缩，这是很多人的常态。</p><p style="margin-top:15px;">爱情需要勇气来经营。试着在关键时刻选择勇敢，你会发现意想不到的收获。</p><p style="margin-top:15px; color:#fdcb6e;">勇敢不是不害怕，而是害怕了依然选择去做。加油！</p>`;
+  } else if (cgScore>=-100) {
+    icon.textContent='😟'; title.textContent='需要勇气';
+    score.style.color='#e94560';
+    msg.innerHTML=`<p>你的勇气得分偏低。你可能在爱情中经常选择逃避、退缩或冷处理。</p><p style="margin-top:15px;">这可能源于过去的伤痛或不安全感。但请记住：<strong>懦弱的行为每条扣20分</strong>，是勇敢的两倍。</p><p style="margin-top:15px; color:#fdcb6e;">改变从现在开始，试着在小事上练习勇敢，你会慢慢看到变化。</p>`;
+  } else {
+    icon.textContent='💔'; title.textContent='爱情危机';
+    score.style.color='#e94560';
+    msg.innerHTML=`<p>你的勇气得分非常低，可能触发了底线伤害。</p><p style="margin-top:15px;"><strong>底线伤害每条扣100分</strong>，很难道歉挽回，可能立马催生分手想法。</p><p style="margin-top:15px;">如果你还在乎这段感情，现在改变还来得及。从今天开始，用行动证明你的勇气和改变。</p><p style="margin-top:15px; color:#fdcb6e;">记住：爱情的计分池可正可负，只要还没到-100，就还有修复的可能。</p>`;
+  }
+
+  // Save to leaderboard
+  cgSaveToLeaderboard();
+  rc.scrollIntoView({ behavior:'smooth' });
+}
+
+function cgSaveToLeaderboard() {
+  const username = getUsername();
+  if (!username) {
+    showUsernameModal();
+    return;
+  }
+  const lb = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
+  // Add new entry (keep multiple entries per user)
+  lb.push({ username, score: cgScore, timestamp: new Date().toISOString() });
+  localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(lb));
+}
+
+function cgReset() {
+  cgScore = 0; cgAnswered.clear();
+  document.querySelectorAll('.cg-option.selected, .cg-warning-option.selected').forEach(el => el.classList.remove('selected'));
+  cgUpdateDisplay();
+  document.getElementById('cgResult').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================================================
+//  LEADERBOARD
+// ============================================================
+function refreshLeaderboard() {
+  const username = getUsername();
+  const lb = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
+  
+  // Get best score per user
+  const bestPerUser = {};
+  lb.forEach(entry => {
+    const u = entry.username;
+    if (!bestPerUser[u] || entry.score > bestPerUser[u].score) {
+      bestPerUser[u] = entry;
+    }
+  });
+
+  const sorted = Object.values(bestPerUser).sort((a,b) => b.score - a.score);
+  document.getElementById('lbCount').textContent = `共 ${sorted.length} 人`;
+
+  const list = document.getElementById('lbList');
+  const header = document.getElementById('lbHeader');
+
+  if (sorted.length === 0) {
+    header.classList.add('hidden');
+    list.innerHTML = `<div class="text-center py-16 text-gray-400"><div class="text-5xl mb-4">📋</div><p>还没有人完成测试</p><p class="text-sm mt-2">去完成「爱情勇气积分测试」即可上榜！</p></div>`;
+  } else {
+    header.classList.remove('hidden');
+    let html = '';
+    sorted.forEach((entry, i) => {
+      const rank = i + 1;
+      const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+      const isMe = entry.username === username;
+      const rankCls = rank === 1 ? 'lb-rank-1' : rank === 2 ? 'lb-rank-2' : rank === 3 ? 'lb-rank-3' : '';
+      const dateStr = new Date(entry.timestamp).toLocaleDateString('zh-CN');
+      html += `<div class="lb-row grid grid-cols-[40px_1fr_120px] gap-4 items-center px-4 py-3 border-b border-gray-100 ${isMe?'bg-love-50 rounded-xl':''}">
+        <span class="text-center font-bold ${rankCls}">${medal}</span>
+        <span class="text-gray-700 font-medium">${entry.username}${isMe?' <span class="text-xs text-love-500">(你)</span>':''}</span>
+        <span class="text-right font-bold ${entry.score>=0?'text-green-600':'text-red-500'}">${entry.score>0?'+':''}${entry.score} 分</span>
+      </div>`;
+    });
+    list.innerHTML = html;
+  }
+
+  // My history
+  const myEntries = lb.filter(e => e.username === username).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+  const myHist = document.getElementById('lbMyHistory');
+  if (myEntries.length === 0) {
+    myHist.innerHTML = '<p class="text-gray-400 text-center py-6">你还没有完成过测试</p>';
+  } else {
+    let hhtml = '<div class="space-y-2">';
+    myEntries.forEach(e => {
+      const d = new Date(e.timestamp).toLocaleString('zh-CN');
+      hhtml += `<div class="flex items-center justify-between px-4 py-2 bg-gray-50 rounded-xl"><span class="text-gray-500 text-sm">${d}</span><span class="font-bold ${e.score>=0?'text-green-600':'text-red-500'}">${e.score>0?'+':''}${e.score} 分</span></div>`;
+    });
+    hhtml += '</div>';
+    myHist.innerHTML = hhtml;
+  }
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+  const u = getUsername();
+  if (!u) {
+    setTimeout(showUsernameModal, 300);
+  }
+  updateNavUsername();
+});
+</script>
+</body>
+</html>
