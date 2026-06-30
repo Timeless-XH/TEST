@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>爱的五种语言 · 爱情勇气积分 · 综合平台</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 tailwind.config = {
   theme: {
@@ -321,8 +322,12 @@ tailwind.config = {
 //  GLOBAL STATE
 // ============================================================
 const USERNAME_KEY = 'love_platform_username';
-const LEADERBOARD_KEY = 'love_courage_leaderboard';
 const LL_STORAGE_KEY = 'love_languages_quiz_result';
+
+// Supabase
+const SUPABASE_URL = 'https://xhizdmaxcrysvbktollh.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_dGHwBuEbbbEUOI44k9oUhA_cMvnAwd1';
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let llCurrentQ = 0;
 let llAnswers = new Array(10).fill(null);
 
@@ -378,7 +383,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================================
 //  TAB SWITCHING
 // ============================================================
-function switchTab(tab) {
+async function switchTab(tab) {
   document.querySelectorAll('.content-tab').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
   document.getElementById('tabContent' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
@@ -594,7 +599,7 @@ function cgUpdateDisplay() {
   document.getElementById('cgSubmitBtn').disabled = cgAnswered.size < cgTotalQ;
 }
 
-function cgShowResult() {
+async function cgShowResult() {
   const rc = document.getElementById('cgResult');
   const icon = document.getElementById('cgResultIcon');
   const title = document.getElementById('cgResultTitle');
@@ -626,20 +631,21 @@ function cgShowResult() {
   }
 
   // Save to leaderboard
-  cgSaveToLeaderboard();
+  await cgSaveToLeaderboard();
   rc.scrollIntoView({ behavior:'smooth' });
 }
 
-function cgSaveToLeaderboard() {
+async function cgSaveToLeaderboard() {
   const username = getUsername();
   if (!username) {
     showUsernameModal();
     return;
   }
-  const lb = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
-  // Add new entry (keep multiple entries per user)
-  lb.push({ username, score: cgScore, timestamp: new Date().toISOString() });
-  localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(lb));
+  try {
+    await supabase.from('scores').insert({ username, score: cgScore });
+  } catch(e) {
+    console.error('Save failed:', e);
+  }
 }
 
 function cgReset() {
@@ -653,17 +659,23 @@ function cgReset() {
 // ============================================================
 //  LEADERBOARD
 // ============================================================
-function refreshLeaderboard() {
+async function refreshLeaderboard() {
   const username = getUsername();
-  const lb = JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || '[]');
-  
-  // Get best score per user
+
+  // Fetch from Supabase
+  const { data: lb } = await supabase
+    .from('scores')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  const allEntries = lb || [];
+  document.getElementById('lbCount').textContent = `共 ${allEntries.length} 次记录`;
+
+  // Best score per user
   const bestPerUser = {};
-  lb.forEach(entry => {
-    const u = entry.username;
-    if (!bestPerUser[u] || entry.score > bestPerUser[u].score) {
-      bestPerUser[u] = entry;
-    }
+  allEntries.forEach(e => {
+    if (!bestPerUser[e.username] || e.score > bestPerUser[e.username].score)
+      bestPerUser[e.username] = e;
   });
 
   const sorted = Object.values(bestPerUser).sort((a,b) => b.score - a.score);
@@ -671,41 +683,30 @@ function refreshLeaderboard() {
 
   const list = document.getElementById('lbList');
   const header = document.getElementById('lbHeader');
-
   if (sorted.length === 0) {
     header.classList.add('hidden');
     list.innerHTML = `<div class="text-center py-16 text-gray-400"><div class="text-5xl mb-4">📋</div><p>还没有人完成测试</p><p class="text-sm mt-2">去完成「爱情勇气积分测试」即可上榜！</p></div>`;
   } else {
     header.classList.remove('hidden');
     let html = '';
-    sorted.forEach((entry, i) => {
-      const rank = i + 1;
-      const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
-      const isMe = entry.username === username;
-      const rankCls = rank === 1 ? 'lb-rank-1' : rank === 2 ? 'lb-rank-2' : rank === 3 ? 'lb-rank-3' : '';
-      const dateStr = new Date(entry.timestamp).toLocaleDateString('zh-CN');
-      html += `<div class="lb-row grid grid-cols-[40px_1fr_120px] gap-4 items-center px-4 py-3 border-b border-gray-100 ${isMe?'bg-love-50 rounded-xl':''}">
-        <span class="text-center font-bold ${rankCls}">${medal}</span>
-        <span class="text-gray-700 font-medium">${entry.username}${isMe?' <span class="text-xs text-love-500">(你)</span>':''}</span>
-        <span class="text-right font-bold ${entry.score>=0?'text-green-600':'text-red-500'}">${entry.score>0?'+':''}${entry.score} 分</span>
-      </div>`;
+    sorted.forEach((e, i) => {
+      const m = i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);
+      const me = e.username===username;
+      html += `<div class="lb-row grid grid-cols-[40px_1fr_120px] gap-4 items-center px-4 py-3 border-b border-gray-100 ${me?'bg-love-50 rounded-xl':''}"><span class="text-center font-bold ${i===0?'lb-rank-1':i===1?'lb-rank-2':i===2?'lb-rank-3':''}">${m}</span><span class="text-gray-700 font-medium">${e.username}${me?' <span class="text-xs text-love-500">(你)</span>':''}</span><span class="text-right font-bold ${e.score>=0?'text-green-600':'text-red-500'}">${e.score>0?'+':''}${e.score} 分</span></div>`;
     });
     list.innerHTML = html;
   }
 
   // My history
-  const myEntries = lb.filter(e => e.username === username).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-  const myHist = document.getElementById('lbMyHistory');
-  if (myEntries.length === 0) {
-    myHist.innerHTML = '<p class="text-gray-400 text-center py-6">你还没有完成过测试</p>';
+  const my = allEntries.filter(e => e.username===username).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  const h = document.getElementById('lbMyHistory');
+  if (!my.length) {
+    h.innerHTML = '<p class="text-gray-400 text-center py-6">你还没有完成过测试</p>';
   } else {
-    let hhtml = '<div class="space-y-2">';
-    myEntries.forEach(e => {
-      const d = new Date(e.timestamp).toLocaleString('zh-CN');
-      hhtml += `<div class="flex items-center justify-between px-4 py-2 bg-gray-50 rounded-xl"><span class="text-gray-500 text-sm">${d}</span><span class="font-bold ${e.score>=0?'text-green-600':'text-red-500'}">${e.score>0?'+':''}${e.score} 分</span></div>`;
-    });
-    hhtml += '</div>';
-    myHist.innerHTML = hhtml;
+    h.innerHTML = '<div class="space-y-2">' + my.map(e => {
+      const d = new Date(e.created_at).toLocaleString('zh-CN');
+      return `<div class="flex items-center justify-between px-4 py-2 bg-gray-50 rounded-xl"><span class="text-gray-500 text-sm">${d}</span><span class="font-bold ${e.score>=0?'text-green-600':'text-red-500'}">${e.score>0?'+':''}${e.score} 分</span></div>`;
+    }).join('') + '</div>';
   }
 }
 
